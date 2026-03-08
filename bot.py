@@ -3,8 +3,8 @@ from telegram import Update
 from telegram.ext import ApplicationBuilder, MessageHandler, filters, ContextTypes
 from openai import OpenAI
 
-OPENROUTER_KEY = "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"
-TELEGRAM_KEY = "8686811794:AAF9Oo8qbH7P4sl3loXXvkPNOUVcVfKGXas"
+OPENROUTER_KEY = os.environ.get("OPENROUTER_KEY")
+TELEGRAM_KEY = os.environ.get("TELEGRAM_KEY")
 
 client = OpenAI(
     api_key=OPENROUTER_KEY,
@@ -22,4 +22,5 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 app = ApplicationBuilder().token(TELEGRAM_KEY).build()
 app.add_handler(MessageHandler(filters.TEXT, handle_message))
+
 app.run_polling()
