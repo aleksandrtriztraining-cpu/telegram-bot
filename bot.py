@@ -1,4 +1,5 @@
-﻿# -*- coding: utf-8 -*-
+import os
+# -*- coding: utf-8 -*-
 from telegram import Update
 from telegram.ext import ApplicationBuilder, MessageHandler, filters, ContextTypes
 from openai import OpenAI
@@ -24,3 +25,4 @@ app = ApplicationBuilder().token(TELEGRAM_KEY).build()
 app.add_handler(MessageHandler(filters.TEXT, handle_message))
 
 app.run_polling()
+
