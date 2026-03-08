@@ -1,5 +1,5 @@
 import os
-# -*- coding: utf-8 -*-
+import asyncio
 from telegram import Update
 from telegram.ext import ApplicationBuilder, MessageHandler, filters, ContextTypes
 from openai import OpenAI
@@ -15,14 +15,13 @@ client = OpenAI(
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_text = update.message.text
     response = client.chat.completions.create(
-        model="arcee-ai/trinity-large-preview:free",
+        model="google/gemma-3-27b-it:free",
         messages=[{"role": "user", "content": user_text}]
     )
     reply = response.choices[0].message.content
     await update.message.reply_text(reply)
 
-app = ApplicationBuilder().token(TELEGRAM_KEY).build()
-app.add_handler(MessageHandler(filters.TEXT, handle_message))
-
-app.run_polling()
-
+if __name__ == "__main__":
+    app = ApplicationBuilder().token(TELEGRAM_KEY).build()
+    app.add_handler(MessageHandler(filters.TEXT, handle_message))
+    app.run_polling()
