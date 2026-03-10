@@ -1,28 +1,39 @@
 import os
-import asyncio
-from telegram import Update
-from telegram.ext import ApplicationBuilder, MessageHandler, filters, ContextTypes
-from openai import OpenAI
+import time
+import requests
 
-OPENROUTER_KEY = os.environ.get("OPENROUTER_KEY")
 TELEGRAM_KEY = os.environ.get("TELEGRAM_KEY")
+OPENROUTER_KEY = os.environ.get("OPENROUTER_KEY")
 
-client = OpenAI(
-    api_key=OPENROUTER_KEY,
-    base_url="https://openrouter.ai/api/v1"
-)
+BASE = f"https://api.telegram.org/bot{TELEGRAM_KEY}"
 
-async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    user_text = update.message.text
-    response = client.chat.completions.create(
-        model="stepfun/step-3.5-flash:free", 
-        messages=[{"role": "user", "content": user_text}]
+def get_updates(offset=None):
+    params = {"timeout": 30}
+    if offset:
+        params["offset"] = offset
+    r = requests.get(f"{BASE}/getUpdates", params=params)
+    return r.json().get("result", [])
+
+def send_message(chat_id, text):
+    requests.post(f"{BASE}/sendMessage", json={"chat_id": chat_id, "text": text})
+
+def ask_ai(text):
+    r = requests.post(
+        "https://openrouter.ai/api/v1/chat/completions",
+        headers={"Authorization": f"Bearer {OPENROUTER_KEY}"},
+        json={"model": "google/gemma-3-27b-it:free", "messages": [{"role": "user", "content": text}]}
     )
-    reply = response.choices[0].message.content
-    await update.message.reply_text(reply)
+    return r.json()["choices"][0]["message"]["content"]
 
-if __name__ == "__main__":
-    app = ApplicationBuilder().token(TELEGRAM_KEY).build()
-    app.add_handler(MessageHandler(filters.TEXT, handle_message))
-    app.run_polling()
-
+offset = None
+while True:
+    updates = get_updates(offset)
+    for update in updates:
+        offset = update["update_id"] + 1
+        msg = update.get("message", {})
+        text = msg.get("text")
+        chat_id = msg.get("chat", {}).get("id")
+        if text and chat_id:
+            reply = ask_ai(text)
+            send_message(chat_id, reply)
+    time.sleep(1)
