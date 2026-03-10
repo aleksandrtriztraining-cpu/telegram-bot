@@ -15,7 +15,7 @@ client = OpenAI(
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_text = update.message.text
     response = client.chat.completions.create(
-        model="google/gemma-3-27b-it:free",
+        model="stepfun/step-3.5-flash:free", 
         messages=[{"role": "user", "content": user_text}]
     )
     reply = response.choices[0].message.content
@@ -25,3 +25,4 @@ if __name__ == "__main__":
     app = ApplicationBuilder().token(TELEGRAM_KEY).build()
     app.add_handler(MessageHandler(filters.TEXT, handle_message))
     app.run_polling()
+
