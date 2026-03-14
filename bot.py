@@ -8,6 +8,9 @@ OPENROUTER_KEY = os.environ.get("OPENROUTER_KEY")
 
 BASE = f"https://api.telegram.org/bot{TELEGRAM_KEY}"
 
+# Удаляем вебхук чтобы polling работал
+requests.get(f"{BASE}/deleteWebhook")
+
 def get_updates(offset=None):
     params = {"timeout": 30}
     if offset:
