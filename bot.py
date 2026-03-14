@@ -28,7 +28,7 @@ def ask_ai(text):
     r = requests.post(
         "https://openrouter.ai/api/v1/chat/completions",
         headers={"Authorization": f"Bearer {OPENROUTER_KEY}"},
-        json={"model": "stepfun/step-3.5-flash:free": [{"role": "user", "content": text}]}
+        json={"model": "stepfun/step-3.5-flash:free", "messages": [{"role": "user", "content": text}]}
     )
     print("OpenRouter:", r.status_code, r.text[:200])
     return r.json()["choices"][0]["message"]["content"]
