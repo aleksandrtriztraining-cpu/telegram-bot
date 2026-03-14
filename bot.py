@@ -1,4 +1,3 @@
-# v2
 import os
 import time
 import requests
@@ -8,14 +7,18 @@ OPENROUTER_KEY = os.environ.get("OPENROUTER_KEY")
 
 BASE = f"https://api.telegram.org/bot{TELEGRAM_KEY}"
 
-# Удаляем вебхук чтобы polling работал
-requests.get(f"{BASE}/deleteWebhook")
+r = requests.get(f"{BASE}/deleteWebhook")
+print("deleteWebhook:", r.text)
+
+r = requests.get(f"{BASE}/getMe")
+print("getMe:", r.text)
 
 def get_updates(offset=None):
-    params = {"timeout": 30}
+    params = {"timeout": 10}
     if offset:
         params["offset"] = offset
-    r = requests.get(f"{BASE}/getUpdates", params=params)
+    r = requests.get(f"{BASE}/getUpdates", params=params, timeout=15)
+    print("getUpdates status:", r.status_code, r.text[:300])
     return r.json().get("result", [])
 
 def send_message(chat_id, text):
@@ -27,7 +30,7 @@ def ask_ai(text):
         headers={"Authorization": f"Bearer {OPENROUTER_KEY}"},
         json={"model": "google/gemma-3-27b-it:free", "messages": [{"role": "user", "content": text}]}
     )
-    print("OpenRouter response:", r.status_code, r.text[:200])
+    print("OpenRouter:", r.status_code, r.text[:200])
     return r.json()["choices"][0]["message"]["content"]
 
 print("Bot started!")
@@ -41,7 +44,7 @@ while True:
             text = msg.get("text")
             chat_id = msg.get("chat", {}).get("id")
             if text and chat_id:
-                print(f"Message from {chat_id}: {text}")
+                print(f"Message: {text}")
                 reply = ask_ai(text)
                 send_message(chat_id, reply)
     except Exception as e:
