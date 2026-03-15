@@ -141,7 +141,7 @@ def ask_ai(chat_id, text):
 
     histories[key].append({"role": "user", "content": text})
 
-    messages = [{"role": "system", "content": SYSTEM_PROMPT}] + histories[key][-20:]
+    messages = [{"role": "system", "content": SYSTEM_PROMPT}] + histories[key][-60:]
 
     r = requests.post(
         "https://openrouter.ai/api/v1/chat/completions",
@@ -166,8 +166,17 @@ while True:
             text = msg.get("text")
             chat_id = msg.get("chat", {}).get("id")
             if text and chat_id:
-                reply = ask_ai(chat_id, text)
-                send_message(chat_id, reply)
+                key = str(chat_id)
+
+                if text == "/reset":
+                    histories[key] = []
+                    save_histories(histories)
+                    send_message(chat_id, "История очищена. Начинаем новую сессию! 🌱")
+                elif text == "/start":
+                    send_message(chat_id, "Привет! Я коуч по икигай. Напиши что-нибудь, чтобы начать нашу сессию.\n\nКоманда /reset — начать новую сессию с чистого листа.")
+                else:
+                    reply = ask_ai(chat_id, text)
+                    send_message(chat_id, reply)
     except Exception as e:
         print("Error:", e)
     time.sleep(1)
