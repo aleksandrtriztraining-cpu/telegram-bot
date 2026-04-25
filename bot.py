@@ -1,7 +1,9 @@
 import os
 import time
 import json
+import threading
 import requests
+from flask import Flask
 
 TELEGRAM_KEY = os.environ.get("TELEGRAM_KEY")
 OPENROUTER_KEY = os.environ.get("OPENROUTER_KEY")
@@ -154,6 +156,18 @@ def ask_ai(chat_id, text):
     save_histories(histories)
 
     return reply
+
+app = Flask(__name__)
+
+@app.route("/")
+def health():
+    return "OK"
+
+def run_web():
+    port = int(os.environ.get("PORT", 8080))
+    app.run(host="0.0.0.0", port=port)
+
+threading.Thread(target=run_web, daemon=True).start()
 
 print("Bot started!")
 offset = None
